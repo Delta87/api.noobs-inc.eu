@@ -62,7 +62,7 @@ class MySQLCon
      */
     public function insertInto($table, $fields)
     {
-        $this->getMYSQLCon();
+        ;
 
         $placeholders = array_fill(0, count($fields), '?');
         $keys   = array();
@@ -73,7 +73,7 @@ class MySQLCon
             $values[] = !empty($v) ? $v : null;
         }
 
-        $stmt = $this->MYSQL_CON->prepare(sprintf("insert into %s(%s) values (%s)", $table, implode(', ', $keys), implode(', ', $placeholders)));
+        $stmt = $this->getMYSQLCon()->prepare(sprintf("insert into %s(%s) values (%s)", $table, implode(', ', $keys), implode(', ', $placeholders)));
 
         $params = array();
         foreach ($fields as &$value) {
@@ -85,13 +85,64 @@ class MySQLCon
         call_user_func_array(array($stmt, 'bind_param'), $values);
 
         $success = $stmt->execute();
+        $stmt->close();
         return $success;
     }
+
+    /**
+     * Select data from a table with given information
+     * @param $table string The mysql-table from wher you want the data
+     * @param $selects array the select statement as array (Default: array("*") ).
+     * @param $whereCondition string Your Where condition which you want to provide. Example: "ID".
+     * @param $types string an string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
+     * @param $params array an array of parameter. Count must match with types.
+     * @return array the data from the mysql-table
+     *
+     */
+    public function getMysqlArray($table, $selects = array("*"), $whereCondition = null, $types = null, $params = null)
+    {
+        if($whereCondition != null)
+            $sql = sprintf("SELECT %s from %s WHERE %s = ?", implode(',', $selects), $table, $whereCondition);
+        else
+            $sql = sprintf("SELECT %s from %s", implode(',', $selects), $table);
+
+        $stmt = $this->getMYSQLCon()->prepare($sql);
+        if($types&&$params)
+        {
+            $bind_names[] = $types;
+            for ($i=0; $i<count($params);$i++)
+            {
+                $bind_name = 'bind' . $i;
+                $$bind_name = $params[$i];
+                $bind_names[] = &$$bind_name;
+            }
+            $return = call_user_func_array(array($stmt,'bind_param'),$bind_names);
+        }
+
+        $stmt->execute();
+        $meta = $stmt->result_metadata();
+
+        while ($field = $meta->fetch_field()) {
+            $var = $field->name;
+            $$var = null;
+            $parameters[$field->name] = &$$var;
+        }
+
+        call_user_func_array(array($stmt, 'bind_result'), $parameters);
+        $returns = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+        return $returns;
+    }
+
+
+
 
     public function __toString()
     {
         // TODO: Implement __toString() method.
         return "";
     }
+
+
 
 }
