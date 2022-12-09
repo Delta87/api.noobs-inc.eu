@@ -9,3 +9,4 @@
 /dataSources.local.xml
 # User ignores
 /config/database.php
+/test.php
