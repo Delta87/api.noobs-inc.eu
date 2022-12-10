@@ -91,12 +91,12 @@ class MySQLCon
 
     /**
      * Select data from a table with given information
-     * @param $table string The mysql-table from wher you want the data
+     * @param $table string The mysql-table from where you want the data
      * @param $selects array the select statement as array (Default: array("*") ).
      * @param $whereCondition string Your Where condition which you want to provide. Example: "ID".
      * @param $types string an string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
      * @param $params array an array of parameter. Count must match with types.
-     * @return array the data from the mysql-table
+     * @return array|boolean the data from the mysql-table or false
      *
      */
     public function getMysqlArray($table, $selects = array("*"), $whereCondition = null, $types = null, $params = null)
@@ -131,7 +131,48 @@ class MySQLCon
         call_user_func_array(array($stmt, 'bind_result'), $parameters);
         $returns = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
-        return $returns;
+        if(count($returns) == 0)
+        {
+            return false;
+        }else{
+            return $returns;
+        }
+    }
+
+    /**
+     * Get then number of rows with this data
+     * @param $table string The mysql-table from where you want the number of rows
+     * @param $selects array the select statement as array (Default: array("*") ).
+     * @param $whereCondition string Your Where condition which you want to provide. Example: "ID".
+     * @param $types string an string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
+     * @param $params array an array of parameter. Count must match with types.
+     * @return integer the number from the mysql-table
+     *
+     */
+    public function getNumRows($table, $selects = array("*"), $whereCondition = null, $types = null, $params = null)
+    {
+        if($whereCondition != null)
+            $sql = sprintf("SELECT %s from %s WHERE %s = ?", implode(',', $selects), $table, $whereCondition);
+        else
+            $sql = sprintf("SELECT %s from %s", implode(',', $selects), $table);
+
+        $stmt = $this->getMYSQLCon()->prepare($sql);
+        if($types&&$params)
+        {
+            $bind_names[] = $types;
+            for ($i=0; $i<count($params);$i++)
+            {
+                $bind_name = 'bind' . $i;
+                $$bind_name = $params[$i];
+                $bind_names[] = &$$bind_name;
+            }
+            $return = call_user_func_array(array($stmt,'bind_param'),$bind_names);
+        }
+
+        $stmt->execute();
+        $stmt->store_result();
+
+        return $stmt->num_rows;
     }
 
 
