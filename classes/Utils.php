@@ -6,7 +6,7 @@ class Utils
      * Check if this file runs on the commandline.
      * @return bool true/false for running on commandline.
      */
-    public static function is_cli()
+    public static function is_cli():bool
     {
         if( empty($_SERVER['REMOTE_ADDR']) and !isset($_SERVER['HTTP_USER_AGENT']) and count($_SERVER['argv']) > 0)
         {
@@ -16,13 +16,14 @@ class Utils
     }
 
     /**
-     * Remove first '.' and '/' for a clean include proccess.
+     * Remove first '.' and '/' for a clean include process.
      * Must start with '/' or './'
      * @param String $stringToCut the string to cut.
      * @return String the clean string
-     * @throws Exception If string dont start with correct characters an exception will be thrown
+     * @throws Exception If string don't start with correct characters an exception will be thrown
      */
-    public static function buildCleanString($stringToCut){
+    public static function buildCleanString(string $stringToCut):string
+    {
             if(self::startsWith($stringToCut, "./") || self::startsWith($stringToCut, "/"))
             {
                 $returnVal = substr(strstr($stringToCut, "/"), strlen("/"));
@@ -32,12 +33,11 @@ class Utils
                 return $returnVal;
             }else
             {
-                echo "GOTO WRONG???? ->".$stringToCut;
-                throw new Exception('Wrong start character for includestring');
+                throw new Exception('Wrong start character for include-string');
             }
     }
 
-    public static function startsWith ($string, $startString)
+    public static function startsWith ($string, $startString):bool
     {
         $len = strlen($startString);
         return (substr($string, 0, $len) === $startString);

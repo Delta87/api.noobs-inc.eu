@@ -1,13 +1,12 @@
 <?php
 class MySQLCon
 {
-    private $MYSQL_HOST = NULL;
-    private $MYSQL_USER = NULL;
-    private $MYSQK_PASS = NULL;
-    private $MYSQL_BASE = NULL;
+    private string $MYSQL_HOST;
+    private string $MYSQL_USER;
+    private string $MYSQL_PASS;
+    private string $MYSQL_BASE;
 
-    private $MYSQL_CON = NULL;
-    private $MYSQL_DATABSE = NULL;
+    private mysqli $MYSQL_CON;
 
 
 
@@ -16,14 +15,24 @@ class MySQLCon
         $dbhost = $dbuser = $dbpass = $dbbase = NULL;
 
         if(Utils::is_cli()){
-            require sprintf("%s/%s", getenv('PWD'), Utils::buildCleanString($configfile));
+            try {
+                require sprintf("%s/%s", getenv('PWD'), Utils::buildCleanString($configfile));
+            } catch (Exception $ex)
+            {
+                die(sprintf("Configfile could not be found! <br> Error-Message: <b>%s</b>", $ex->getMessage()));
+            }
         }else{
-            require sprintf("%s/%s", filter_input(INPUT_SERVER, 'DOCUMENT_ROOT'), Utils::buildCleanString($configfile));
+            try{
+                require sprintf("%s/%s", filter_input(INPUT_SERVER, 'DOCUMENT_ROOT'), Utils::buildCleanString($configfile));
+            }catch (Exception $ex)
+            {
+                die(sprintf("Configfile could not be found! <br> Error-Message: <b>%s</b>", $ex->getMessage()));
+            }
         }
 
         $this->MYSQL_HOST = $dbhost;
         $this->MYSQL_USER = $dbuser;
-        $this->MYSQK_PASS = $dbpass;
+        $this->MYSQL_PASS = $dbpass;
         $this->MYSQL_BASE = $dbbase;
 
 
@@ -46,31 +55,28 @@ class MySQLCon
      */
     private function getMYSQLCon()
     {
-        if($this->MYSQL_CON == NULL)
+        if(empty($this->MYSQL_CON))
         {
-            $this->MYSQL_CON = mysqli_connect($this->MYSQL_HOST, $this->MYSQL_USER, $this->MYSQK_PASS, $this->MYSQL_BASE);
-
+           $this->MYSQL_CON = mysqli_connect($this->MYSQL_HOST, $this->MYSQL_USER, $this->MYSQL_PASS, $this->MYSQL_BASE);
         }
         return $this->MYSQL_CON;
     }
 
     /**
      * Insert data into a mysql table
-     * @param $table MySQLCon The mysql-table where the data should be stored
-     * @param $fields array The data as array which match the table-structure!
+     * @param string $table The mysql-table where the data should be stored
+     * @param array $fields The data as array which match the table-structure!
      * @return boolean true/false for success after try to insert the data
      */
-    public function insertInto($table, $fields)
+    public function insertInto(string $table, array $fields): bool
     {
-        ;
-
         $placeholders = array_fill(0, count($fields), '?');
         $keys   = array();
-        $values = array();
+        //$values = array();
 
         foreach($fields as $k => $v) {
             $keys[] = $k;
-            $values[] = !empty($v) ? $v : null;
+            //$values[] = !empty($v) ? $v : null;
         }
 
         $stmt = $this->getMYSQLCon()->prepare(sprintf("insert into %s(%s) values (%s)", $table, implode(', ', $keys), implode(', ', $placeholders)));
@@ -93,13 +99,12 @@ class MySQLCon
      * Select data from a table with given information
      * @param $table string The mysql-table from where you want the data
      * @param $selects array the select statement as array (Default: array("*") ).
-     * @param $whereCondition string Your Where condition which you want to provide. Example: "ID".
-     * @param $types string an string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
-     * @param $params array an array of parameter. Count must match with types.
+     * @param string|null $whereCondition string Your Where condition which you want to provide. Example: "ID".
+     * @param string|null $types a string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
+     * @param array|null $params an array of parameter. Count must match with types.
      * @return array|boolean the data from the mysql-table or false
-     *
      */
-    public function getMysqlArray($table, $selects = array("*"), $whereCondition = null, $types = null, $params = null)
+    public function getMysqlArray(string $table, array $selects = array("*"), string $whereCondition = null, string $types = null, array $params = null)
     {
         if($whereCondition != null)
             $sql = sprintf("SELECT %s from %s WHERE %s = ?", implode(',', $selects), $table, $whereCondition);
@@ -116,7 +121,7 @@ class MySQLCon
                 $$bind_name = $params[$i];
                 $bind_names[] = &$$bind_name;
             }
-            $return = call_user_func_array(array($stmt,'bind_param'),$bind_names);
+            call_user_func_array(array($stmt,'bind_param'),$bind_names);
         }
 
         $stmt->execute();
@@ -143,13 +148,12 @@ class MySQLCon
      * Get then number of rows with this data
      * @param $table string The mysql-table from where you want the number of rows
      * @param $selects array the select statement as array (Default: array("*") ).
-     * @param $whereCondition string Your Where condition which you want to provide. Example: "ID".
-     * @param $types string an string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
-     * @param $params array an array of parameter. Count must match with types.
-     * @return integer the number from the mysql-table
-     *
+     * @param string|null $whereCondition string Your Where condition which you want to provide. Example: "ID".
+     * @param string|null $types string a string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
+     * @param array|null $params array an array of parameter. Count must match with types.
+     * @return int the number from the mysql-table
      */
-    public function getNumRows($table, $selects = array("*"), $whereCondition = null, $types = null, $params = null)
+    public function getNumRows(string $table, array $selects = array("*"), string $whereCondition = null, string $types = null, array $params = null): int
     {
         if($whereCondition != null)
             $sql = sprintf("SELECT %s from %s WHERE %s = ?", implode(',', $selects), $table, $whereCondition);
@@ -166,7 +170,7 @@ class MySQLCon
                 $$bind_name = $params[$i];
                 $bind_names[] = &$$bind_name;
             }
-            $return = call_user_func_array(array($stmt,'bind_param'),$bind_names);
+            call_user_func_array(array($stmt,'bind_param'),$bind_names);
         }
 
         $stmt->execute();
