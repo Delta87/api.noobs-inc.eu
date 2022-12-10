@@ -17,7 +17,7 @@ class Utils
 
     /**
      * Remove first '.' and '/' for a clean include process.
-     * Must start with '/' or './'
+     * Must start with '/' or './' ('./' for local directory, '/' for absolute path. Relative Path will not be supported
      * @param String $stringToCut the string to cut.
      * @return String the clean string
      * @throws Exception If string don't start with correct characters an exception will be thrown
@@ -33,7 +33,7 @@ class Utils
                 return $returnVal;
             }else
             {
-                throw new Exception('Wrong start character for include-string');
+                throw new Exception(sprintf('Wrong start character for include-string<br>String: %s <br>Hint: Relative path will not be supported! Only local or absolut path</br>',$stringToCut));
             }
     }
 
