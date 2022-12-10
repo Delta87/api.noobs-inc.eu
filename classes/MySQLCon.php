@@ -57,7 +57,7 @@ class MySQLCon
     /**
      * Insert data into a mysql table
      * @param $table MySQLCon The mysql-table where the data should be stored
-     * @param $fields MySQLCon The data as array which match the table-structure!
+     * @param $fields array The data as array which match the table-structure!
      * @return boolean true/false for success after try to insert the data
      */
     public function insertInto($table, $fields)
