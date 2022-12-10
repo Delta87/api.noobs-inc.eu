@@ -179,7 +179,37 @@ class MySQLCon
         return $stmt->num_rows;
     }
 
+    /**
+     * Update a row in the table with given fields and where-conditions
+     * @param string $table the mysql table.
+     * @param array $fields an array which match your mysql-table data which you want to update. (eg. array("name" => "peter") );
+     * @param string $whereClause a string which defines a single where statement (eg. where 'ID' = 0 ). OR is currently not supported.
+     * @param string $whereParam the parameter for the where field to update the row.
+     * @return bool returns true or false if the update was a success.
+     */
+    public function updateRow(string $table, array $fields, string $whereClause, string $whereParam):bool
+    {
 
+        $str = "";
+        foreach($fields as $key => $val){
+            $str .= sprintf("%s=?, ", $key);
+        }
+        $str = substr($str, 0, strlen($str)-2);
+        $sql = sprintf("UPDATE %s SET %s WHERE %s=?", $table, $str, $whereClause);
+        $stmt = $this->getMYSQLCon()->prepare($sql);
+
+        $params = array();
+        foreach ($fields as &$value) {
+            $params[] = &$value;
+        }
+        $params[] = &$whereParam;
+        $types  = array(str_repeat('s', count($params)));
+        $values = array_merge($types, $params);
+        call_user_func_array(array($stmt, 'bind_param'), $values);
+        $succes = $stmt->execute();
+        $stmt->close();
+        return $succes;
+    }
 
 
     public function __toString()
