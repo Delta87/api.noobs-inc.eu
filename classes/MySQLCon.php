@@ -206,11 +206,10 @@ class MySQLCon
         $types  = array(str_repeat('s', count($params)));
         $values = array_merge($types, $params);
         call_user_func_array(array($stmt, 'bind_param'), $values);
-        $succes = $stmt->execute();
+        $success = $stmt->execute();
         $stmt->close();
-        return $succes;
+        return $success;
     }
-
 
     public function __toString()
     {
