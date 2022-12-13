@@ -8,6 +8,7 @@ spl_autoload_register(function ($class_name) {
     include_once sprintf("classes/%s.php", $class_name);
 });
 $db = new MySQLCon("/config/database.php");
+$discordAPI = new discordAPI("/config/discord.php", $db);
 
 
 
