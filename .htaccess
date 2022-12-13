@@ -1,0 +1,8 @@
+RewriteEngine On
+RewriteRule ^([^/]*)/$ /index.php?platform=$1 [L]
+RewriteRule ^([^/]*)/([^/]*)/$ /index.php?platform=$1&action=$2 [L]
+RewriteRule ^([^/]*)/([^/]*)/([^/]*)/$ /index.php?platform=$1&action=$2&platformID=$3 [L]
+RewriteRule ^([^/]*)/([^/]*)/([^/]*)/([^/]*)/$ /index.php?platform=$1&action=$2&platformID=$3&api-token=$4 [L]
+RewriteRule ^([^/]*)/([^/]*)/([^/]*)/([^/]*)/([^/]*)/$ /index.php?platform=$1&action=$2&platformID=$3&api-token=$4&content=$5 [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*[^/])$ http://%{HTTP_HOST}/$1/ [L,R=301]

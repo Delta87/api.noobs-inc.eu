@@ -43,6 +43,10 @@ class Utils
         return (substr($string, 0, $len) === $startString);
     }
 
+    public static function send404(string $message= ""):void{
+        http_response_code(404);
+        die($message);
+    }
 
 
 

@@ -10,3 +10,4 @@
 # User ignores
 /config/database.php
 /test.php
+/index.php
