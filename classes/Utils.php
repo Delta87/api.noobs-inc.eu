@@ -48,6 +48,23 @@ class Utils
         die($message);
     }
 
+    public static function isTokenValid(string $token, MySQLCon $db):bool
+    {
+        if($db->getNumRows("token",array("*"), "token", "s", array($token)) !== 1)
+        {
+            Utils::send404();
+        }
 
+        $data = $db->getMysqlArray("token", array("*"), "token", "s", array($token));
 
+        //TODO: Change check to a dynamic time.
+        if($data[0]['validUntil']<time())
+        {
+            Utils::send404();
+            return false; //Useless but yeah.. to be correct..
+        }
+        else{
+            return true;
+        }
+    }
 }
