@@ -64,11 +64,14 @@ class MySQLCon
 
     /**
      * Insert data into a mysql table
+     *
+     * Example: $id = $db->insertInto("table", array("column1" => "value1", "column2" => "value2", "column3" => "value3", "column4" => "value4"));
+     *
      * @param string $table The mysql-table where the data should be stored
      * @param array $fields The data as array which match the table-structure!
-     * @return boolean true/false for success after try to insert the data
+     * @return int|boolean id or false for success after try to insert the data
      */
-    public function insertInto(string $table, array $fields): bool
+    public function insertInto(string $table, array $fields)
     {
         $placeholders = array_fill(0, count($fields), '?');
         $keys   = array();
@@ -81,6 +84,8 @@ class MySQLCon
 
         $stmt = $this->getMYSQLCon()->prepare(sprintf("insert into %s(%s) values (%s)", $table, implode(', ', $keys), implode(', ', $placeholders)));
 
+
+
         $params = array();
         foreach ($fields as &$value) {
             $params[] = &$value;
@@ -91,18 +96,24 @@ class MySQLCon
         call_user_func_array(array($stmt, 'bind_param'), $values);
 
         $success = $stmt->execute();
+        if($success)
+            $success = $stmt->insert_id;
+
         $stmt->close();
         return $success;
     }
 
     /**
      * Select data from a table with given information
+     *
+     * Example: $db->getMysqlArray("table", array("*"), "where", "i", array(where-param));
+     *
      * @param $table string The mysql-table from where you want the data
      * @param $selects array the select statement as array (Default: array("*") ).
      * @param string|null $whereCondition string Your Where condition which you want to provide. Example: "ID".
      * @param string|null $types a string of the types for parameter you want to provide. Example: "is" counts for 2 parameter. First is an integer, second a string.
      * @param array|null $params an array of parameter. Count must match with types.
-     * @return array|boolean the data from the mysql-table or false
+     * @return array|boolean the data from the mysql-table as array with first Element (array[0]) or false
      */
     public function getMysqlArray(string $table, array $selects = array("*"), string $whereCondition = null, string $types = null, array $params = null)
     {
@@ -146,6 +157,9 @@ class MySQLCon
 
     /**
      * Get then number of rows with this data
+     *
+     * Example:  $db->getNumRows("table", array("*"), "where", "s", array(where-parameter);
+     *
      * @param $table string The mysql-table from where you want the number of rows
      * @param $selects array the select statement as array (Default: array("*") ).
      * @param string|null $whereCondition string Your Where condition which you want to provide. Example: "ID".
@@ -181,6 +195,9 @@ class MySQLCon
 
     /**
      * Update a row in the table with given fields and where-conditions
+     *
+     * Example: $db->updateRow("table", array("updateColumn1" => "updateValue1", "updateColumn2" => "updateValue2", "updateColumn3" => "updateValue3"), "whereColumn", "where-parameter")
+     *
      * @param string $table the mysql table.
      * @param array $fields an array which match your mysql-table data which you want to update. (eg. array("name" => "peter") );
      * @param string $whereClause a string which defines a single where statement (eg. where 'ID' = 0 ). OR is currently not supported.

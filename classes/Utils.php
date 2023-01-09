@@ -33,7 +33,7 @@ class Utils
                 return $returnVal;
             }else
             {
-                throw new Exception(sprintf('Wrong start character for include-string<br>String: %s <br>Hint: Relative path will not be supported! Only local or absolut path</br>',$stringToCut));
+                throw new Exception(sprintf('Wrong start character for include-string<br>String: %s <br>Hint: Relative path will not be supported! Only local "./{path}" or absolut path "/{path}"</br>',$stringToCut));
             }
     }
 
@@ -57,14 +57,25 @@ class Utils
 
         $data = $db->getMysqlArray("token", array("*"), "token", "s", array($token));
 
-        //TODO: Change check to a dynamic time.
         if($data[0]['validUntil']<time())
         {
             Utils::send404();
             return false; //Useless but yeah.. to be correct..
         }
         else{
+            $db->updateRow("token", array("validUntil" => self::getTimeInDays(14)), "token", $token);
             return true;
         }
+    }
+
+    /**
+     * Get a unix timestamp in the future for given days
+     * @param int $days The amount of days for calculation
+     * @return int Timestamp in the future
+     *
+     */
+    public static function getTimeInDays($days):int
+    {
+        return time() + (3600*24*$days);
     }
 }
